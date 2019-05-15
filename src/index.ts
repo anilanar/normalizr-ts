@@ -51,14 +51,18 @@ type Normalize<
   E1 extends Entity<any, any, any, any>,
   Prop extends keyof ExtractType<E1>,
   E2 extends Entity<any, any, any, any>
-> = Omit<ExtractType<E1>, Prop> & { [K in Prop]: ExtractType<E1>[Prop] extends ExtractType<E2>[] ? ExtractIdType<E2>[] : ExtractIdType<E2> };
+> = Omit<TypeOf<E1>, Prop> &
+  {
+    [K in Prop]: TypeOf<E1>[Prop] extends ExtractType<E2>[]
+      ? ExtractIdType<E2>[]
+      : ExtractIdType<E2>
+  };
 
 type AddRelation<
   T,
   EKey extends string,
   IdType extends string | number,
   Set extends SelfSet<EKey>,
-  // E1 extends Entity<any, any, any, any>,
   Prop extends keyof T,
   E2 extends Entity<any, any, any, any>
 > = Entity<
@@ -74,8 +78,6 @@ type AddRelation<
       >
     }
 >;
-// type ToNormalized<E> = Omit<ExtractType<E>, keyof ExtractSet<E> & keyof ExtractType<E>>
-// type Normalize<E> = { entities: ExtractSet<E>, result: ExtractIdType<E>[] }
 
 type TypeOf<E extends Entity<any, any, any, any>> = ExtractSet<E>[ExtractKey<
   E
@@ -147,10 +149,12 @@ const ConversationE = ((null as any) as Entity<
 >)
   .one("operator", OperatorE)
   .one("contact", ContactE)
-  .many('transcript', MessageE);
+  .many("transcript", MessageE);
 
-const { entities, result } = ConversationE.normalize({} as any as Conversation[]);
-const transcript = entities.conversation[''].transcript;
+const { entities, result } = ConversationE.normalize(
+  ({} as any) as Conversation[]
+);
+const transcript = entities.conversation[""].transcript;
 
 // type Schema<Key, O, I, Set> =
 //   | Entity<Key, O, I, Set>
