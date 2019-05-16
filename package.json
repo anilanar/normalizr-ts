@@ -9,7 +9,14 @@
   "dependencies": {
     "normalizr": "^3.3.0"
   },
+  "peerDependencies": {
+    "typscript": "^2.9.0"
+  },
   "devDependencies": {
-    "typescript": "^3.4.5"
+    "dtslint": "^0.7.3",
+    "typescript": "^2.9.0"
+  },
+  "scripts": {
+    "dtslint": "dtslint test/types"
   }
 }

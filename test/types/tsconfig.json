@@ -1,20 +1,14 @@
 {
   "compilerOptions": {
-    "outDir": "dist",
     "target": "es5",
     "module": "commonjs",
-    "lib": ["es5"],
-    "declaration": true,
-    "declarationMap": true,
+    "lib": ["es2017"],
     "noImplicitAny": true,
     "noImplicitThis": true,
     "noImplicitReturns": true,
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
-    "sourceMap": true
-  },
-  "include": ["./src/**/*"]
+    "noEmit": true
+  }
 }
