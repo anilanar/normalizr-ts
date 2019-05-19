@@ -7,14 +7,15 @@
   "author": "Anil Anar",
   "license": "MIT",
   "dependencies": {
+    "just-map-values": "^1.1.0",
     "normalizr": "^3.3.0"
   },
   "peerDependencies": {
-    "typscript": "^2.9.0"
+    "typscript": "^3.3.4000"
   },
   "devDependencies": {
     "dtslint": "^0.7.3",
-    "typescript": "^2.9.0"
+    "typescript": "3.3.4000"
   },
   "scripts": {
     "dtslint": "dtslint test/types"

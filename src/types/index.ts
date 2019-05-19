@@ -17,31 +17,35 @@ export interface Entity<
     Entities extends SelfEntities<T, Key, Id>,
     Relations extends {}
 > {
+    entityKeys: { [K in keyof Entities]: true };
     relations: Relations;
     one<
         Prop extends (keyof T) & (keyof Entities[Key][Id]),
-        E2 extends Entity<T[Prop], any, any, any, any>
+        T2 extends T[Prop],
+        Key2 extends string,
+        Id2 extends string | number | symbol,
+        Entities2 extends SelfEntities<T2, Key2, Id2>,
+        Relations2 extends {},
     >(
         prop: Prop,
-        entity: E2
-    ): NewRelation<T, Key, Id, Entities, Relations, Prop, E2>;
+        entity: Entity<T2, Key2, Id2, Entities2, Relations2>,
+    ): NewRelation<T, Key, Id, Entities, Relations, Prop, 'normal', T2, Key2, Id2, Entities2, Relations2>;
+
     many<
         Prop extends (keyof T) & (keyof Entities[Key][Id]),
-        E2 extends Entity<
-            T[Prop] extends any[] ? ExtractArray<T[Prop]> : never,
-            any,
-            any,
-            any,
-            any
-        >
+        T2 extends ExtractArray<T[Prop]>,
+        Key2 extends string,
+        Id2 extends string | number | symbol,
+        Entities2 extends SelfEntities<T2, Key2, Id2>,
+        Relations2 extends {},
     >(
         prop: Prop,
-        entity: E2
-    ): NewRelation<T, Key, Id, Entities, Relations, Prop, E2>;
+        entity: Entity<T2, Key2, Id2, Entities2, Relations2>,
+    ): NewRelation<T, Key, Id, Entities, Relations, Prop, 'array', T2, Key2, Id2, Entities2, Relations2>;
     normalize(obj: T[]): { entities: Entities; result: Id[] };
 }
 
-export type ExtractArray<T extends any[]> = T extends (infer R)[] ? R : never;
+export type ExtractArray<T> = T extends (infer R)[] ? R : never;
 export type ArrayProps<T> = {
     [K in keyof T]: T[K] extends any[] ? K : never
 }[keyof T];
@@ -54,7 +58,6 @@ export type SelfEntities<
 export type EmptyRelations<Key extends string> = { [K in Key]: {} };
 
 type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
-type ExtractType<E> = E extends Entity<infer T, any, any, any, any> ? T : never;
 type ExtractKey<E> = E extends Entity<any, infer Key, any, any, any>
     ? Key
     : never;
@@ -66,16 +69,19 @@ type ExtractEntities<E> = E extends Entity<any, any, any, infer Entities, any>
 //     ? Relations
 //     : never;
 
-type Normalize<
+type RelationType = 'normal' | 'array' | 'map' | 'union';
+
+type NormalizeOne<
     T,
     Prop extends keyof T,
-    E2 extends Entity<any, any, any, any, any>
-> = Omit<T, Prop> &
-    {
-        [K in Prop]: T[Prop] extends ExtractType<E2>[]
-            ? ExtractId<E2>[]
-            : ExtractId<E2>
-    };
+    Id2 extends string | number | symbol
+> = Omit<T, Prop> & { [K in Prop]: Id2 };
+
+type NormalizeMany<
+    T,
+    Prop extends keyof T,
+    Id2 extends string | number | symbol
+> = Omit<T, Prop> & { [K in Prop]: Id2[] };
 
 export type NewRelation<
     T,
@@ -84,13 +90,38 @@ export type NewRelation<
     Entities extends SelfEntities<T, Key, Id>,
     Relations extends {},
     Prop extends (keyof T) & (keyof Entities[Key][Id]),
-    E2 extends Entity<any, any, any, any, any>
+    RType extends RelationType,
+    T2 extends T[Prop],
+    Key2 extends string,
+    Id2 extends string | number | symbol,
+    Entities2 extends SelfEntities<T2, Key2, Id2>,
+    Relations2 extends {},
 > = Entity<
     T,
     Key,
     Id,
-    AddToEntities<T, Key, Id, Entities, Prop, E2>,
-    AddToRelations<Relations, Prop, E2>
+    AddToEntities<T, Key, Id, Entities, Prop, T2, Key2, Id2, Entities2>,
+    AddToRelations<Relations, Prop, T2, Key2, Id2, Entities2, Relations2>
+>;
+
+export type NewManyRelation<
+    T,
+    Key extends string,
+    Id extends string | number | symbol,
+    Entities extends SelfEntities<T, Key, Id>,
+    Relations extends {},
+    Prop extends (keyof T) & (keyof Entities[Key][Id]),
+    T2 extends ExtractArray<T[Prop]>,
+    Key2 extends string,
+    Id2 extends string | number | symbol,
+    Entities2 extends SelfEntities<T2, Key2, Id2>,
+    Relations2 extends {},
+> = Entity<
+    T,
+    Key,
+    Id,
+    AddToEntities<T, Key, Id, Entities, Prop, T2, Key2, Id2, Entities2>,
+    AddToRelations<Relations, Prop, T2, Key2, Id2, Entities2, Relations2>
 >;
 
 export type AddToEntities<
@@ -99,16 +130,25 @@ export type AddToEntities<
     Id extends string | number | symbol,
     Entities extends SelfEntities<T, Key, Id>,
     Prop extends (keyof T) & keyof Entities[Key][Id],
-    E2 extends Entity<any, any, any, any, any>
+    T2,
+    Key2 extends string,
+    Id2 extends string | number | symbol,
+    Entities2 extends SelfEntities<T2, Key2, Id2>,
 > = Omit<Entities, Key> &
-    { [K in Key]: Record<Id, Normalize<Entities[Key][Id], Prop, E2>> } &
-    ExtractEntities<E2>;
+    {
+        [K in Key]: Record<Id, Normalize<Entities[Key][Id], Prop, T2, Id2>>
+    } &
+    Entities2;
 
 export type AddToRelations<
     Relations,
     Prop extends string | number | symbol,
-    E2 extends Entity<any, any, any, any, any>
-> = Relations & { [K in Prop]: E2 };
+    T2,
+    Key2 extends string,
+    Id2 extends string | number | symbol,
+    Entities2 extends SelfEntities<T2, Key2, Id2>,
+    Relations2 extends {},
+> = Relations & { [K in Prop]: Entity<T2, Key2, Id2, Entities2, Relations2> };
 
 export type TypeOf<E extends Entity<any, any, any, any, any>> = ExtractEntities<
     E
