@@ -4,9 +4,8 @@ import {
     WithId,
     Entity,
     NewRelation,
-    ArrayProps,
     ExtractArray,
-    SelfEntities
+    SelfEntities,
 } from "./types";
 
 class EntityImpl<
@@ -16,7 +15,12 @@ class EntityImpl<
     Entities extends SelfEntities<T, Key, Id>,
     Relations extends {}
 > implements Entity<T, Key, Id, Entities, Relations> {
-    relations = {} as Relations;
+    constructor(
+        private key: Key,
+        private idGetter: (obj: T) => Id,
+        public relations: Relations
+    ) {}
+
     one<
         Prop extends (keyof T) & (keyof Entities[Key][Id]),
         E2 extends Entity<T[Prop], any, any, any, any>
@@ -24,7 +28,11 @@ class EntityImpl<
         prop: Prop,
         entity: E2
     ): NewRelation<T, Key, Id, Entities, Relations, Prop, E2> {
-        return null as any;
+        const appendage = { [prop]: entity } as { [P in Prop]: E2 };
+        return new EntityImpl(this.key, this.idGetter, {
+            ...this.relations,
+            ...appendage
+        });
     }
 
     many<
@@ -40,9 +48,26 @@ class EntityImpl<
         prop: Prop,
         entity: E2
     ): NewRelation<T, Key, Id, Entities, Relations, Prop, E2> {
-        return null as any;
+        const appendage = { [prop]: entity } as { [P in Prop]: E2 };
+        return new EntityImpl(this.key, this.idGetter, {
+            ...this.relations,
+            ...appendage
+        });
     }
+
     normalize(obj: T[]): { entities: Entities; result: Id[] } {
+        const result = obj.map(this.idGetter);
+        const entities = {
+            // initialize an empty record for each entity?
+            // we don't have entities :(
+            // back to type proving.
+        }
+        // iterate obj, if a relation is found, call normalize on its entity
+        // which will return { entities, results }. Merge entities into entities.
+        // Q: What if multiple properties return the same entities?
+        // How to merge them?
+        // Check normalzr.
+        // if not, keep the prop.
         return null as any;
     }
 }
@@ -57,8 +82,8 @@ class WithIdImpl<T, Key extends string> implements WithId<T, Key> {
             Key,
             Id,
             { [K in Key]: Record<Id, T> },
-            { [K in Key]: {} }
-        >();
+            {}
+        >(this.key, idGetter, {});
         return {
             relations: {},
             one: cls.one.bind(cls),
