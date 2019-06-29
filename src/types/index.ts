@@ -1,6 +1,3 @@
-// temporary type for better code inference and ergonomics
-// when defining a new entity.
-
 export type ValidT<IdProp extends ValidIndex> = Record<IdProp, ValidIndex>;
 export type ValidIndex = string | number | symbol;
 export type ValidIdProp<T> = ValidIndex & keyof T;
@@ -11,9 +8,6 @@ export interface WithId<T> {
         prop: T extends ValidT<IdProp> ? IdProp : never
     ): T extends ValidT<IdProp> ? WithKey<T, IdProp> : never;
 }
-
-// type X<T> = T
-// type Y<T> = Omit<
 
 export interface WithKey<
     T extends ValidT<IdProp>,
@@ -41,7 +35,8 @@ export interface Entity<
         prop: Prop,
         map: (
             original: Entities[Key][T[IdProp]][Prop]
-        ) => { entities: Entities2; result: Result2 }
+        ) => { entities: Entities2; result: Result2 },
+        empty: () => { entities: Entities2 }
     ): NewRelation<T, Key, IdProp, Entities, Prop, Entities2, Result2>;
 
     one<
@@ -88,6 +83,7 @@ export interface Entity<
         ExtractId<E2>[]
     >;
     normalize(obj: T[]): { entities: Entities; result: T[IdProp][] };
+    empty(): { entities: Entities };
 }
 
 type MapNullable<T1, T2 extends T1, R> = T2 | null | undefined extends T1
@@ -180,6 +176,4 @@ export type AddToEntities<
         >
     };
 
-export type TypeOf<E> = ExtractEntities<
-    E
->[ExtractKey<E>][ExtractId<E>];
+export type TypeOf<E> = ExtractEntities<E>[ExtractKey<E>][ExtractId<E>];

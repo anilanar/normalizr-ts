@@ -18,6 +18,7 @@ export interface Person {
     name: string;
     favoriteAuthor?: Author;
     favoriteBooks: Book[];
+    favoriteFriend?: Person;
 }
 
 export const author = define<Author>()
@@ -28,7 +29,7 @@ export const book = define<Book>()
     .id("isbn")
     .key("book")
     .one("author", author)
-    .relation("authors", authors => author.normalize(authors));
+    .relation("authors", authors => author.normalize(authors), () => author.empty());
 
 export const person = define<Person>()
     .id("id")

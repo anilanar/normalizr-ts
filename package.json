@@ -7,8 +7,9 @@
   "author": "Anil Anar",
   "license": "MIT",
   "dependencies": {
-    "just-map-values": "^1.1.0",
-    "normalizr": "^3.3.0"
+    "@ramda/mergedeepwith": "0.26.1",
+    "@ramda/mergewith": "0.26.1",
+    "just-map-values": "^1.1.0"
   },
   "peerDependencies": {
     "typscript": "^3.3.4000"
@@ -18,10 +19,13 @@
     "@babel/preset-env": "7.4.5",
     "@babel/preset-typescript": "7.3.3",
     "@types/jest": "24.0.15",
+    "@types/ramda": "0.26.12",
     "babel-jest": "24.8.0",
     "dtslint": "0.8.0",
     "fast-check": "1.15.1",
     "jest": "24.8.0",
+    "normalizr": "3.4.0",
+    "ramda": "0.26.1",
     "typescript": "3.5.2"
   },
   "scripts": {

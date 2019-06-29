@@ -15,7 +15,8 @@
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
     "sourceMap": true,
-    "noErrorTruncation": true
+    "noErrorTruncation": true,
+    "typeRoots": ["node_modules/@types", "./types"]
   },
   "include": ["./src/**/*", "babel.config.js"],
   "exclude": ["node_modules"]
