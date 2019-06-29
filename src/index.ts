@@ -1,210 +1,192 @@
-import { Schema, normalize, schema } from "normalizr";
-import map from "just-map-values";
-
 import {
     TypeOf,
     WithKey,
-    WithId,
     Entity,
     NewRelation,
-    ExtractArray,
     SelfEntities,
-    AddToEntities
+    AddToEntities,
+    ExtractEntities,
+    ExtractId,
+    Normalize,
+    ExtractType,
+    ValidIdProp,
+    ValidT,
+    WithId
 } from "./types";
 
 class EntityImpl<
-    T,
+    T extends ValidT<IdProp>,
     Key extends string,
-    Id extends string | number | symbol,
-    Entities extends SelfEntities<T, Key, Id>,
-    Relations extends {}
-> implements Entity<T, Key, Id, Entities, Relations> {
+    IdProp extends ValidIdProp<T>,
+    Entities extends SelfEntities<T, Key, IdProp>
+> implements Entity<T, Key, IdProp, Entities> {
     constructor(
-        private key: Key,
-        private idGetter: (obj: T) => Id,
-        public entityKeys: { [K in keyof Entities]: true },
-        public relations: Relations
-    ) { }
+        private _key: Key,
+        private _idProp: IdProp,
+        private _normalize: (
+            obj: T[]
+        ) => { entities: Entities; result: T[IdProp][] }
+    ) {}
 
-    one<
-        Prop extends (keyof T) & (keyof Entities[Key][Id]),
-        T2 extends T[Prop],
-        Key2 extends string,
-        Id2 extends string | number | symbol,
-        Entities2 extends SelfEntities<T2, Key2, Id2>,
-        Relations2 extends {}
+    relation<
+        Prop extends Exclude<
+            (keyof T) & (keyof Entities[Key][T[IdProp]]),
+            IdProp
+        >,
+        Entities2,
+        Result2
     >(
         prop: Prop,
-        entity: Entity<T2, Key2, Id2, Entities2, Relations2>
+        map: (
+            original: Entities[Key][T[IdProp]][Prop]
+        ) => { entities: Entities2; result: Result2 }
+    ): NewRelation<T, Key, IdProp, Entities, Prop, Entities2, Result2> {
+        // return null as any;
+        return new EntityImpl(this._key, this._idProp, o => {
+            // return null;
+            const { entities, result } = this._normalize(o);
+            const items = result.map(id => entities[this._key][id]);
+
+            type NormalizedItem = Normalize<
+                Entities[Key][T[IdProp]],
+                IdProp,
+                Prop,
+                Result2
+            >;
+
+            // const acc = { entities: {}, result };
+            const itemsNext = items.map(i => {
+                const { result: result2 } = map(i[prop]);
+                return { ...i, [prop]: result2 } as NormalizedItem;
+            });
+
+            // return null;
+            return {
+                entities: {
+                    [this._key]: itemsNext.reduce(
+                        (acc, item) => {
+                            const id = (item[
+                                (this
+                                    ._idProp as unknown) as keyof NormalizedItem
+                            ] as unknown) as T[IdProp];
+                            acc[id] = item;
+                            return acc;
+                        },
+                        {} as Record<T[IdProp], NormalizedItem>
+                    )
+                } as AddToEntities<
+                    T,
+                    Key,
+                    IdProp,
+                    Entities,
+                    Prop,
+                    Entities2,
+                    Result2
+                >,
+                result
+            };
+        });
+    }
+
+    one<
+        Prop extends Exclude<
+            (keyof T) & (keyof Entities[Key][T[IdProp]]),
+            IdProp
+        >,
+        E2 extends Entity<any, any, any, any>
+    >(
+        prop: Entities[Key][T[IdProp]][Prop] extends T[Prop] ? Prop : never,
+        entity: E2
     ): NewRelation<
         T,
         Key,
-        Id,
+        IdProp,
         Entities,
-        Relations,
         Prop,
-        T2,
-        Key2,
-        Id2,
-        Entities2,
-        Relations2
+        ExtractEntities<E2>,
+        ExtractId<E2>
     > {
-        const newRelation = { [prop]: entity } as {
-            [P in Prop]: Entity<T2, Key2, Id2, Entities2, Relations2>
-        };
-        const newEntityKeys = {
-            ...this.entityKeys,
-            ...entity.entityKeys
-        };
-        const newRelations = {
-            ...this.relations,
-            ...newRelation
-        };
-
-        return new EntityImpl<
-            T,
-            Key,
-            Id,
-            AddToEntities<T, Key, Id, Entities, Prop, T2, Key2, Id2, Entities2>,
-            typeof newRelations
-        >(this.key, this.idGetter, newEntityKeys, {
-            ...this.relations,
-            ...newRelation
-        });
+        return this.relation(prop as Prop, orig => entity.normalize([orig]));
     }
 
     many<
-        Prop extends (keyof T) & (keyof Entities[Key][Id]),
-        T2 extends ExtractArray<T[Prop]>,
-        Key2 extends string,
-        Id2 extends string | number | symbol,
-        Entities2 extends SelfEntities<T2, Key2, Id2>,
-        Relations2 extends {}
+        Prop extends Exclude<
+            (keyof T) & (keyof Entities[Key][T[IdProp]]),
+            IdProp
+        >,
+        E2 extends Entity<any, any, any, any>
     >(
-        prop: Prop,
-        entity: Entity<T2, Key2, Id2, Entities2, Relations2>
+        prop: Entities[Key][T[IdProp]][Prop] extends ExtractType<E2>[]
+            ? (Entities[Key][T[IdProp]][Prop] extends T[Prop] ? Prop : never)
+            : never,
+        entity: E2
     ): NewRelation<
         T,
         Key,
-        Id,
+        IdProp,
         Entities,
-        Relations,
         Prop,
-        T2,
-        Key2,
-        Id2,
-        Entities2,
-        Relations2
+        ExtractEntities<E2>,
+        ExtractId<E2>[]
     > {
-        const newRelation = { [prop]: entity } as {
-            [P in Prop]: Entity<T2, Key2, Id2, Entities2, Relations2>
-        };
-        const newEntityKeys = {
-            ...this.entityKeys,
-            ...entity.entityKeys
-        };
-        const newRelations = {
-            ...this.relations,
-            ...newRelation
-        };
-
-        return new EntityImpl<
-            T,
-            Key,
-            Id,
-            AddToEntities<T, Key, Id, Entities, Prop, T2, Key2, Id2, Entities2>,
-            typeof newRelations
-        >(this.key, this.idGetter, newEntityKeys, {
-            ...this.relations,
-            ...newRelation
-        });
+        return this.relation<Prop, ExtractEntities<E2>, ExtractId<E2>[]>(
+            prop,
+            orig =>
+                entity.normalize((orig as unknown) as any[]) as {
+                    entities: ExtractEntities<E2>;
+                    result: ExtractId<E2>[];
+                }
+        );
     }
 
-    normalize(objs: T[]): { entities: Entities; result: Id[] } {
-        const results = objs.map(this.idGetter);
-        const keys = Object.keys(this.entityKeys) as (keyof Entities)[];
-        const entities = keys.reduce(
-            (acc, key) => ({
-                ...acc,
-                [key]: {}
-            }),
-            {}
-        ) as { [K in keyof Entities]: {} };
-
-        const relatedProps = Object.keys(this.relations) as (keyof T &
-            keyof Relations)[];
-
-        for (let i = 0; i < relatedProps.length; i++) {
-            const prop = relatedProps[i];
-            const relatedEntity: any = this.relations[prop];
-            for (let j = 0; j < objs.length; j++) {
-                const obj = objs[j];
-                const related = relatedEntity.normalize([obj[prop]]);
-                // how to merge 2 entities? merge strategy?
-                // assume we somehow enhanced entities.
-                // map(entities, (normalized) => Object.assign(normalized, related.entities));
-            }
-        }
-        // iterate obj, if a relation is found, call normalize on its entity
-        // which will return { entities, results }. Merge entities into entities.
-        // Q: What if multiple properties return the same entities?
-        // How to merge them?
-        // Check normalzr.
-        // if not, keep the prop.
-        return null as any;
+    normalize(obj: T[]): { entities: Entities; result: T[IdProp][] } {
+        return this._normalize(obj);
     }
 }
 
-class WithIdImpl<T, Key extends string> implements WithId<T, Key> {
-    constructor(private key: Key) {}
-    id<Id extends string | number | symbol>(
-        idGetter: (obj: T) => Id
-    ): Entity<T, Key, Id, { [K in Key]: Record<Id, T> }, {}> {
-        const cls = new EntityImpl<
-            T,
-            Key,
-            Id,
-            { [K in Key]: Record<Id, T> },
-            {}
-        >(this.key, idGetter, { [this.key]: true } as { [K in Key]: true }, {});
-
-        return {
-            entityKeys: cls.entityKeys,
-            relations: cls.relations,
-            one: cls.one.bind(cls),
-            many: cls.many.bind(cls),
-            normalize: cls.normalize.bind(cls)
-        };
+class WithIdImpl<T> implements WithId<T> {
+    id<IdProp extends ValidIdProp<T>>(
+        prop: T extends ValidT<IdProp> ? IdProp : never
+    ): T extends ValidT<IdProp> ? WithKey<T, IdProp> : never {
+        return new WithKeyImpl<any, any>(prop) as any;
     }
 }
 
-class WithKeyImpl<T> implements WithKey<T> {
-    key<Key extends string>(key: Key): WithId<T, Key> {
-        const cls = new WithIdImpl<T, Key>(key);
-        return {
-            id: cls.id.bind(cls)
-        };
+class WithKeyImpl<T extends ValidT<IdProp>, IdProp extends ValidIdProp<T>>
+    implements WithKey<T, IdProp> {
+    constructor(private _idProp: IdProp) {}
+    key<Key extends string>(
+        key: Key
+    ): Entity<T, Key, IdProp, { [K in Key]: Record<T[IdProp], T> }> {
+        return new EntityImpl(key, this._idProp, o => ({
+            entities: {
+                [key as Key]: {
+                    [o[0][this._idProp] as T[IdProp]]: o[0]
+                } as Record<T[IdProp], T>
+            } as Record<Key, Record<T[IdProp], T>>,
+            result: o.map(i => i[this._idProp])
+        }));
     }
 }
 
-export function define<T>(): WithKey<T> {
-    const cls = new WithKeyImpl<T>();
-    return {
-        key: cls.key.bind(cls)
-    };
+export function define<T>(): WithId<T> {
+    return new WithIdImpl();
 }
 
-/**
- * Algorithm:
- * 1) Iterate b
- * 2) if a doesn't have `prop`, `a[prop]` = `b[prop]`;
- * 3) if a has `prop`, merge `b[prop]` into `a[prop]`:
- *  3.a) iterate `b[prop]`
- *  3.b) if `a[prop]` doesn't have `id`, `a[prop][id] = b[prop][id]`
- *  3.c) if `a[prop]` has `id`, `a[prop][id] = merge(a[prop][id], b[prop][id])`
- */
-function mergeEntities<E1 extends object, E2 extends object>(a: E1, b: E2): E1 & E2 {
-    return null as any;
-}
+// /**
+//  * Algorithm:
+//  * 1) Iterate b
+//  * 2) if a doesn't have `prop`, `a[prop]` = `b[prop]`;
+//  * 3) if a has `prop`, merge `b[prop]` into `a[prop]`:
+//  *  3.a) iterate `b[prop]`
+//  *  3.b) if `a[prop]` doesn't have `id`, `a[prop][id] = b[prop][id]`
+//  *  3.c) if `a[prop]` has `id`, `a[prop][id] = merge(a[prop][id], b[prop][id])`
+//  */
+// function mergeEntities<E1 extends object, E2 extends object>(
+//     a: E1,
+//     b: E2
+// ): E1 & E2 {
+//     return null as any;
+// }
 
 export { TypeOf };

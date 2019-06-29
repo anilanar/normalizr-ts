@@ -1,155 +1,185 @@
 // temporary type for better code inference and ergonomics
 // when defining a new entity.
 
-export interface WithKey<T> {
-    key<Key extends string>(key: Key): WithId<T, Key>;
+export type ValidT<IdProp extends ValidIndex> = Record<IdProp, ValidIndex>;
+export type ValidIndex = string | number | symbol;
+export type ValidIdProp<T> = ValidIndex & keyof T;
+export type ValidId<T, IdProp extends ValidIdProp<T>> = ValidIndex & T[IdProp];
+
+export interface WithId<T> {
+    id<IdProp extends ValidIdProp<T>>(
+        prop: T extends ValidT<IdProp> ? IdProp : never
+    ): T extends ValidT<IdProp> ? WithKey<T, IdProp> : never;
 }
-export interface WithId<T, Key extends string> {
-    id<Id extends string | number | symbol>(
-        idGetter: (obj: T) => Id
-    ): Entity<T, Key, Id, { [K in Key]: Record<Id, T> }, {}>;
+
+// type X<T> = T
+// type Y<T> = Omit<
+
+export interface WithKey<
+    T extends ValidT<IdProp>,
+    IdProp extends ValidIdProp<T>
+> {
+    key<Key extends string>(
+        key: Key
+    ): Entity<T, Key, IdProp, { [K in Key]: Record<T[IdProp], T> }>;
 }
 
 export interface Entity<
-    T,
+    T extends ValidT<IdProp>,
     Key extends string,
-    Id extends string | number | symbol,
-    Entities extends SelfEntities<T, Key, Id>,
-    Relations extends {}
+    IdProp extends ValidIdProp<T>,
+    Entities extends SelfEntities<T, Key, IdProp>
 > {
-    entityKeys: { [K in keyof Entities]: true };
-    relations: Relations;
-    one<
-        Prop extends (keyof T) & (keyof Entities[Key][Id]),
-        T2 extends T[Prop],
-        Key2 extends string,
-        Id2 extends string | number | symbol,
-        Entities2 extends SelfEntities<T2, Key2, Id2>,
-        Relations2 extends {},
+    relation<
+        Prop extends Exclude<
+            (keyof T) & (keyof Entities[Key][T[IdProp]]),
+            IdProp
+        >,
+        Entities2,
+        Result2
     >(
         prop: Prop,
-        entity: Entity<T2, Key2, Id2, Entities2, Relations2>,
-    ): NewRelation<T, Key, Id, Entities, Relations, Prop, 'normal', T2, Key2, Id2, Entities2, Relations2>;
+        map: (
+            original: Entities[Key][T[IdProp]][Prop]
+        ) => { entities: Entities2; result: Result2 }
+    ): NewRelation<T, Key, IdProp, Entities, Prop, Entities2, Result2>;
+
+    one<
+        Prop extends Exclude<
+            (keyof T) & (keyof Entities[Key][T[IdProp]]),
+            IdProp
+        >,
+        E2 extends Entity<any, any, any, any>
+    >(
+        prop: Entities[Key][T[IdProp]][Prop] extends T[Prop]
+            ? Exclude<Prop, IdProp>
+            : never,
+        entity: E2
+    ): NewRelation<
+        T,
+        Key,
+        IdProp,
+        Entities,
+        Prop,
+        ExtractEntities<E2>,
+        ExtractId<E2>
+    >;
 
     many<
-        Prop extends (keyof T) & (keyof Entities[Key][Id]),
-        T2 extends ExtractArray<T[Prop]>,
-        Key2 extends string,
-        Id2 extends string | number | symbol,
-        Entities2 extends SelfEntities<T2, Key2, Id2>,
-        Relations2 extends {},
+        Prop extends Exclude<
+            (keyof T) & (keyof Entities[Key][T[IdProp]]),
+            IdProp
+        >,
+        E2 extends Entity<any, any, any, any>
     >(
-        prop: Prop,
-        entity: Entity<T2, Key2, Id2, Entities2, Relations2>,
-    ): NewRelation<T, Key, Id, Entities, Relations, Prop, 'array', T2, Key2, Id2, Entities2, Relations2>;
-    normalize(obj: T[]): { entities: Entities; result: Id[] };
+        prop: Entities[Key][T[IdProp]][Prop] extends ExtractType<E2>[]
+            ? (Entities[Key][T[IdProp]][Prop] extends T[Prop]
+                  ? Exclude<Prop, IdProp>
+                  : never)
+            : never,
+        entity: E2
+    ): NewRelation<
+        T,
+        Key,
+        IdProp,
+        Entities,
+        Prop,
+        ExtractEntities<E2>,
+        ExtractId<E2>[]
+    >;
+    normalize(obj: T[]): { entities: Entities; result: T[IdProp][] };
 }
 
-export type ExtractArray<T> = T extends (infer R)[] ? R : never;
+type MapNullable<T1, T2 extends T1, R> = T2 | null | undefined extends T1
+    ? R | null | undefined
+    : T2 | null extends T1
+    ? R | null
+    : T2 | undefined extends T1
+    ? R | undefined
+    : R;
+
 export type ArrayProps<T> = {
     [K in keyof T]: T[K] extends any[] ? K : never
 }[keyof T];
 
 export type SelfEntities<
-    T,
+    T extends ValidT<IdProp>,
     Key extends string,
-    Id extends string | number | symbol
-> = { [K in Key]: Record<Id, { [P in keyof T]: any }> };
+    IdProp extends ValidIdProp<T>
+> = {
+    [K in Key]: Record<
+        T[IdProp],
+        { [P in Exclude<keyof T, IdProp>]?: unknown } & { [K in IdProp]: T[K] }
+    >
+};
 export type EmptyRelations<Key extends string> = { [K in Key]: {} };
 
 type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
-type ExtractKey<E> = E extends Entity<any, infer Key, any, any, any>
+export type ExtractType<E> = E extends Entity<
+    infer T,
+    infer _A,
+    infer _B,
+    infer _C
+>
+    ? T
+    : never;
+export type ExtractKey<E> = E extends Entity<any, infer Key, any, any>
     ? Key
     : never;
-type ExtractId<E> = E extends Entity<any, any, infer Id, any, any> ? Id : never;
-type ExtractEntities<E> = E extends Entity<any, any, any, infer Entities, any>
+export type ExtractId<E> = E extends Entity<infer T, any, infer IdProp, any>
+    ? T[IdProp]
+    : never;
+export type ExtractEntities<E> = E extends Entity<
+    infer _A,
+    infer _B,
+    infer _C,
+    infer Entities
+>
     ? Entities
     : never;
-// type ExtractRelations<E> = E extends Entity<any, any, any, any, infer Relations>
-//     ? Relations
-//     : never;
 
-type RelationType = 'normal' | 'array' | 'map' | 'union';
+export type ExtractArray<T> = T extends (infer R)[] ? R : never;
+export type ExtractDict<T> = T extends Record<any, infer R> ? R : never;
 
-type NormalizeOne<
+export type Normalize<
     T,
-    Prop extends keyof T,
-    Id2 extends string | number | symbol
-> = Omit<T, Prop> & { [K in Prop]: Id2 };
-
-type NormalizeMany<
-    T,
-    Prop extends keyof T,
-    Id2 extends string | number | symbol
-> = Omit<T, Prop> & { [K in Prop]: Id2[] };
+    IdProp,
+    Prop extends Exclude<keyof T, IdProp>,
+    Result
+> = Omit<T, Prop> & { [K in keyof Pick<T, Prop>]: Result };
 
 export type NewRelation<
-    T,
+    T extends ValidT<IdProp>,
     Key extends string,
-    Id extends string | number | symbol,
-    Entities extends SelfEntities<T, Key, Id>,
-    Relations extends {},
-    Prop extends (keyof T) & (keyof Entities[Key][Id]),
-    RType extends RelationType,
-    T2 extends T[Prop],
-    Key2 extends string,
-    Id2 extends string | number | symbol,
-    Entities2 extends SelfEntities<T2, Key2, Id2>,
-    Relations2 extends {},
+    IdProp extends ValidIdProp<T>,
+    Entities extends SelfEntities<T, Key, IdProp>,
+    Prop extends Exclude<(keyof T) & keyof Entities[Key][T[IdProp]], IdProp>,
+    Entities2,
+    Result2
 > = Entity<
     T,
     Key,
-    Id,
-    AddToEntities<T, Key, Id, Entities, Prop, T2, Key2, Id2, Entities2>,
-    AddToRelations<Relations, Prop, T2, Key2, Id2, Entities2, Relations2>
->;
-
-export type NewManyRelation<
-    T,
-    Key extends string,
-    Id extends string | number | symbol,
-    Entities extends SelfEntities<T, Key, Id>,
-    Relations extends {},
-    Prop extends (keyof T) & (keyof Entities[Key][Id]),
-    T2 extends ExtractArray<T[Prop]>,
-    Key2 extends string,
-    Id2 extends string | number | symbol,
-    Entities2 extends SelfEntities<T2, Key2, Id2>,
-    Relations2 extends {},
-> = Entity<
-    T,
-    Key,
-    Id,
-    AddToEntities<T, Key, Id, Entities, Prop, T2, Key2, Id2, Entities2>,
-    AddToRelations<Relations, Prop, T2, Key2, Id2, Entities2, Relations2>
+    IdProp,
+    AddToEntities<T, Key, IdProp, Entities, Prop, Entities2, Result2>
 >;
 
 export type AddToEntities<
-    T,
+    T extends ValidT<IdProp>,
     Key extends string,
-    Id extends string | number | symbol,
-    Entities extends SelfEntities<T, Key, Id>,
-    Prop extends (keyof T) & keyof Entities[Key][Id],
-    T2,
-    Key2 extends string,
-    Id2 extends string | number | symbol,
-    Entities2 extends SelfEntities<T2, Key2, Id2>,
-> = Omit<Entities, Key> &
+    IdProp extends ValidIdProp<T>,
+    Entities extends SelfEntities<T, Key, IdProp>,
+    Prop extends Exclude<(keyof T) & keyof Entities[Key][T[IdProp]], IdProp>,
+    Entities2,
+    Result2
+> = Entities2 &
+    Omit<Entities, Key> &
     {
-        [K in Key]: Record<Id, Normalize<Entities[Key][Id], Prop, T2, Id2>>
-    } &
-    Entities2;
+        [K in Key]: Record<
+            T[IdProp],
+            Normalize<Entities[Key][T[IdProp]], IdProp, Prop, Result2>
+        >
+    };
 
-export type AddToRelations<
-    Relations,
-    Prop extends string | number | symbol,
-    T2,
-    Key2 extends string,
-    Id2 extends string | number | symbol,
-    Entities2 extends SelfEntities<T2, Key2, Id2>,
-    Relations2 extends {},
-> = Relations & { [K in Prop]: Entity<T2, Key2, Id2, Entities2, Relations2> };
-
-export type TypeOf<E extends Entity<any, any, any, any, any>> = ExtractEntities<
+export type TypeOf<E> = ExtractEntities<
     E
 >[ExtractKey<E>][ExtractId<E>];

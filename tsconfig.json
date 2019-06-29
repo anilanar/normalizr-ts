@@ -3,18 +3,20 @@
     "outDir": "dist",
     "target": "es5",
     "module": "commonjs",
-    "lib": ["es2017"],
+    "lib": ["es2017", "dom"],
     "declaration": true,
     "declarationMap": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
     "noImplicitReturns": true,
     "strict": true,
-    "noUnusedLocals": true,
+    "noUnusedLocals": false,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "noErrorTruncation": true
   },
-  "include": ["./src/**/*"]
+  "include": ["./src/**/*", "babel.config.js"],
+  "exclude": ["node_modules"]
 }
