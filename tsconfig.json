@@ -16,8 +16,7 @@
     "sourceMap": true,
     "noErrorTruncation": true,
     "typeRoots": ["node_modules/@types", "./types"],
-    "noEmit": true,
-    "rootDir": "src"
+    "noEmit": true
   },
 
   "include": ["./src/**/*"],

@@ -5,6 +5,9 @@ import pkg from "./package.json";
 
 const ts = typescript({
     tsconfigOverride: {
+        compilerOptions: {
+            rootDir: "src"
+        },
         exclude: ["node_modules", "./src/**/*.test.ts"]
     }
 });
