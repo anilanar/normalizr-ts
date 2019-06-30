@@ -13,7 +13,7 @@
     "@ramda/mergewith": "0.26.1"
   },
   "peerDependencies": {
-    "typscript": "^3.4.5"
+    "typecript": "^3.4.5"
   },
   "devDependencies": {
     "@babel/core": "7.4.5",
