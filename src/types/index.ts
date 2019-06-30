@@ -1,7 +1,6 @@
 export type ValidT<IdProp extends ValidIndex> = Record<IdProp, ValidIndex>;
 export type ValidIndex = string | number | symbol;
 export type ValidIdProp<T> = ValidIndex & keyof T;
-export type ValidId<T, IdProp extends ValidIdProp<T>> = ValidIndex & T[IdProp];
 
 export interface WithId<T> {
     id<IdProp extends ValidIdProp<T>>(
@@ -94,10 +93,6 @@ type MapNullable<T1, T2 extends T1, R> = T2 | null | undefined extends T1
     ? R | undefined
     : R;
 
-export type ArrayProps<T> = {
-    [K in keyof T]: T[K] extends any[] ? K : never
-}[keyof T];
-
 export type SelfEntities<
     T extends ValidT<IdProp>,
     Key extends string,
@@ -108,9 +103,9 @@ export type SelfEntities<
         { [P in Exclude<keyof T, IdProp>]?: unknown } & { [K in IdProp]: T[K] }
     >
 };
-export type EmptyRelations<Key extends string> = { [K in Key]: {} };
 
 type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+
 export type ExtractType<E> = E extends Entity<
     infer T,
     infer _A,
@@ -133,9 +128,6 @@ export type ExtractEntities<E> = E extends Entity<
 >
     ? Entities
     : never;
-
-export type ExtractArray<T> = T extends (infer R)[] ? R : never;
-export type ExtractDict<T> = T extends Record<any, infer R> ? R : never;
 
 export type Normalize<
     T,

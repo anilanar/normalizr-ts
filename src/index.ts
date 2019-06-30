@@ -1,5 +1,3 @@
-import mapValues from "just-map-values";
-import mergeDeepWith from "@ramda/mergedeepwith";
 import mergeWith from "@ramda/mergewith";
 
 import {
@@ -16,7 +14,6 @@ import {
     ValidIdProp,
     ValidT,
     WithId,
-    ValidId,
     ValidIndex
 } from "./types";
 

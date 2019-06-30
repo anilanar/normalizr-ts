@@ -7,7 +7,6 @@
   "author": "Anil Anar",
   "license": "MIT",
   "dependencies": {
-    "@ramda/mergedeepwith": "0.26.1",
     "@ramda/mergewith": "0.26.1",
     "just-map-values": "^1.1.0"
   },
