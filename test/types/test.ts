@@ -1,5 +1,5 @@
-import { TypeOf } from "../../src";
-import { book, author, person, Person } from "../../mock";
+import { TypeOf } from "../../src/index";
+import { book, author, person, Person } from "../../mock/index";
 
 type AssertEqual<A, B> = A extends B ? (B extends A ? true : false) : false;
 

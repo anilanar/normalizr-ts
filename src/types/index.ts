@@ -43,55 +43,51 @@ export interface Entity<
             (keyof T) & (keyof Entities[Key][T[IdProp]]),
             IdProp
         >,
-        E2 extends Entity<any, any, any, any>
+        T2 extends ValidT<IdProp2>,
+        IdProp2 extends ValidIdProp<T2>,
+        Key2 extends string,
+        Entities2 extends SelfEntities<T2, Key2, IdProp2>
     >(
         prop: Entities[Key][T[IdProp]][Prop] extends T[Prop]
             ? Exclude<Prop, IdProp>
             : never,
-        entity: E2
-    ): NewRelation<
-        T,
-        Key,
-        IdProp,
-        Entities,
-        Prop,
-        ExtractEntities<E2>,
-        ExtractId<E2>
-    >;
+        entity: Exclude<
+            Entities[Key][T[IdProp]][Prop],
+            undefined | null
+        > extends T2
+            ? Entity<T2, Key2, IdProp2, Entities2>
+            : never
+    ): NewRelation<T, Key, IdProp, Entities, Prop, Entities2, T2[IdProp2]>;
 
     many<
         Prop extends Exclude<
             (keyof T) & (keyof Entities[Key][T[IdProp]]),
             IdProp
         >,
-        E2 extends Entity<any, any, any, any>
+        T2 extends ValidT<IdProp2>,
+        IdProp2 extends ValidIdProp<T2>,
+        Key2 extends string,
+        Entities2 extends SelfEntities<T2, Key2, IdProp2>
     >(
-        prop: Entities[Key][T[IdProp]][Prop] extends ExtractType<E2>[]
-            ? (Entities[Key][T[IdProp]][Prop] extends T[Prop]
-                  ? Exclude<Prop, IdProp>
-                  : never)
+        prop: Entities[Key][T[IdProp]][Prop] extends T[Prop]
+            ? Exclude<Prop, IdProp>
             : never,
-        entity: E2
+        entity: Exclude<T[Prop], null | undefined> extends T2[]
+            ? Entity<T2, Key2, IdProp2, Entities2>
+            : never
     ): NewRelation<
         T,
         Key,
         IdProp,
         Entities,
         Prop,
-        ExtractEntities<E2>,
-        ExtractId<E2>[]
+        Entities2,
+        T2[IdProp2][] | Exclude<T[Prop], T2[]>
     >;
+    normalizeOne(obj: T): { entities: Entities; result: T[IdProp] };
     normalize(obj: T[]): { entities: Entities; result: T[IdProp][] };
     empty(): { entities: Entities };
 }
-
-type MapNullable<T1, T2 extends T1, R> = T2 | null | undefined extends T1
-    ? R | null | undefined
-    : T2 | null extends T1
-    ? R | null
-    : T2 | undefined extends T1
-    ? R | undefined
-    : R;
 
 export type SelfEntities<
     T extends ValidT<IdProp>,
@@ -117,9 +113,15 @@ export type ExtractType<E> = E extends Entity<
 export type ExtractKey<E> = E extends Entity<any, infer Key, any, any>
     ? Key
     : never;
-export type ExtractId<E> = E extends Entity<infer T, any, infer IdProp, any>
-    ? T[IdProp]
+export type ExtractIdProp<E> = E extends Entity<
+    infer _T,
+    any,
+    infer IdProp,
+    any
+>
+    ? IdProp
     : never;
+export type ExtractId<E> = ExtractType<E>[ExtractIdProp<E>];
 export type ExtractEntities<E> = E extends Entity<
     infer _A,
     infer _B,
@@ -169,3 +171,5 @@ export type AddToEntities<
     };
 
 export type TypeOf<E> = ExtractEntities<E>[ExtractKey<E>][ExtractId<E>];
+
+type UnboxArray<T> = T extends (infer R)[] ? R : never;

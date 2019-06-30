@@ -1,14 +1,22 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "outDir": "dist",
     "target": "es5",
     "module": "commonjs",
-    "lib": ["es2017"],
+    "lib": ["es2017", "dom"],
+    "declaration": true,
+    "declarationMap": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
     "noImplicitReturns": true,
     "strict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
-    "noEmit": true
+    "sourceMap": true,
+    "noErrorTruncation": true,
+    "typeRoots": ["../../node_modules/@types", "../../src/types"]
   }
 }
