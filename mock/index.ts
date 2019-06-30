@@ -29,7 +29,11 @@ export const book = define<Book>()
     .id("isbn")
     .key("book")
     .one("author", author)
-    .relation("authors", authors => author.normalize(authors), () => author.empty());
+    .relation(
+        "authors",
+        authors => author.normalize(authors),
+        () => author.empty()
+    );
 
 export const person = define<Person>()
     .id("id")

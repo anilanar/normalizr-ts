@@ -22,13 +22,28 @@
     "babel-jest": "24.8.0",
     "dtslint": "0.8.0",
     "fast-check": "1.15.1",
+    "husky": "2.7.0",
     "jest": "24.8.0",
+    "lint-staged": "8.2.1",
     "normalizr": "3.4.0",
+    "prettier": "1.18.2",
     "ramda": "0.26.1",
     "typescript": "3.5.2"
   },
   "scripts": {
     "dtslint": "dtslint test/types",
+    "format": "prettier --write **/*.{js,ts,json}",
     "test": "jest"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn lint-staged"
+    }
+  },
+  "lint-staged": {
+    "**/*.{js,ts,json}": [
+      "prettier --write",
+      "git add"
+    ]
   }
 }

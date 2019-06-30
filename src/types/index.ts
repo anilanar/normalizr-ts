@@ -101,7 +101,7 @@ export type SelfEntities<
     [K in Key]: Record<
         T[IdProp],
         { [P in Exclude<keyof T, IdProp>]?: unknown } & { [K in IdProp]: T[K] }
-    >
+    >;
 };
 
 type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
@@ -165,7 +165,7 @@ export type AddToEntities<
         [K in Key]: Record<
             T[IdProp],
             Normalize<Entities[Key][T[IdProp]], IdProp, Prop, Result2>
-        >
+        >;
     };
 
 export type TypeOf<E> = ExtractEntities<E>[ExtractKey<E>][ExtractId<E>];
