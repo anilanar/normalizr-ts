@@ -1,11 +1,10 @@
 {
   "compilerOptions": {
-    "outDir": "dist",
     "target": "es5",
-    "module": "commonjs",
-    "lib": ["es2017", "dom"],
+    "module": "es2015",
+    "moduleResolution": "node",
+    "lib": ["es5", "dom"],
     "declaration": true,
-    "declarationMap": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
     "noImplicitReturns": true,
@@ -16,8 +15,11 @@
     "esModuleInterop": true,
     "sourceMap": true,
     "noErrorTruncation": true,
-    "typeRoots": ["node_modules/@types", "./types"]
+    "typeRoots": ["node_modules/@types", "./types"],
+    "noEmit": true,
+    "rootDir": "src"
   },
-  "include": ["./src/**/*", "babel.config.js"],
+
+  "include": ["./src/**/*"],
   "exclude": ["node_modules"]
 }

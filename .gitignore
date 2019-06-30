@@ -65,3 +65,6 @@ typings/
 
 # tsc output
 dist
+
+# rollup/ts cache
+.rpt2_cache

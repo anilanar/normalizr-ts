@@ -7,14 +7,9 @@ import {
     NewRelation,
     SelfEntities,
     AddToEntities,
-    ExtractEntities,
-    ExtractId,
-    Normalize,
-    ExtractType,
     ValidIdProp,
     ValidT,
-    WithId,
-    ValidIndex
+    WithId
 } from "./types";
 
 class EntityImpl<
@@ -58,13 +53,6 @@ class EntityImpl<
                     Entities,
                     Prop,
                     Entities2,
-                    Result2
-                >;
-
-                type NormalizedItem = Normalize<
-                    Entities[Key][T[IdProp]],
-                    IdProp,
-                    Prop,
                     Result2
                 >;
 

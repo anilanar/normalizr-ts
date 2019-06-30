@@ -2,16 +2,18 @@
   "name": "ts-normalizr",
   "version": "0.0.1",
   "description": "A type safe normalizr",
-  "main": "dist/index.js",
-  "repository": "https://github.com/anilanar/ts-normalizr",
+  "main": "dist/normalizr-ts.cjs.js",
+  "module": "dist/normalizr-ts.esm.js",
+  "browser": "dist/normalizr-ts.umd.js",
+  "types": "dist/index.d.ts",
+  "repository": "https://github.com/anilanar/normalizr-ts",
   "author": "Anil Anar",
   "license": "MIT",
   "dependencies": {
-    "@ramda/mergewith": "0.26.1",
-    "just-map-values": "^1.1.0"
+    "@ramda/mergewith": "0.26.1"
   },
   "peerDependencies": {
-    "typscript": "^3.3.4000"
+    "typscript": "^3.4.5"
   },
   "devDependencies": {
     "@babel/core": "7.4.5",
@@ -28,13 +30,21 @@
     "normalizr": "3.4.0",
     "prettier": "1.18.2",
     "ramda": "0.26.1",
+    "rollup": "1.16.3",
+    "rollup-plugin-commonjs": "10.0.1",
+    "rollup-plugin-node-resolve": "5.2.0",
+    "rollup-plugin-typescript2": "0.21.2",
     "typescript": "3.5.2"
   },
   "scripts": {
+    "build": "rollup -c",
     "dtslint": "dtslint test/types",
     "format": "prettier --write **/*.{js,ts,json}",
     "test": "jest"
   },
+  "files": [
+    "dist"
+  ],
   "husky": {
     "hooks": {
       "pre-commit": "yarn lint-staged"
