@@ -1,6 +1,7 @@
 {
   "name": "normalizr-ts",
   "version": "0.0.3",
+  "keywords": ["normalizr", "typescript", "normalizr-ts", "ts"],
   "description": "A type safe normalizr",
   "main": "dist/normalizr-ts.cjs.js",
   "module": "dist/normalizr-ts.esm.js",

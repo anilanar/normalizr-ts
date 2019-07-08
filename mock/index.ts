@@ -1,4 +1,5 @@
 import { define } from "../src";
+import { union } from "../src/types";
 
 export interface Author {
     id: number;
@@ -77,9 +78,12 @@ export const candy = define<Candy>()
             }
             const { entities, result } = user.normalizeOne(owner);
             return {
-                entities,
+                entities: { ...group.empty().entities, ...entities },
                 result: { schema: owner.type, id: result }
             };
         },
         () => group.empty()
     );
+
+const userOrGroup = union([user, group], e => (e.type === "user" ? 0 : 1));
+const x = userOrGroup.normalizeOne((null as any) as User);

@@ -8,6 +8,22 @@ export interface WithId<T> {
     ): T extends ValidT<IdProp> ? WithKey<T, IdProp> : never;
 }
 
+export function union<
+    E1 extends Entity<any, any, any, any>,
+    E2 extends Entity<any, any, any, any>
+>(
+    entities: [E1, E2],
+    fn: (entity: ExtractType<E1> | ExtractType<E2>) => number
+): Union2<E1, E2>;
+export function union<
+    E1 extends Entity<any, any, any, any>,
+    E2 extends Entity<any, any, any, any>
+    E3 extends Entity<any, any, any, any>
+>(
+    entities: [E1, E2, E3],
+    fn: (entity: ExtractType<E1> | ExtractType<E2> | ExtractType<E3>) => number
+): Union2<E1, E2, E3>;
+
 export interface WithKey<
     T extends ValidT<IdProp>,
     IdProp extends ValidIdProp<T>
@@ -87,6 +103,24 @@ export interface Entity<
     normalizeOne(obj: T): { entities: Entities; result: T[IdProp] };
     normalize(obj: T[]): { entities: Entities; result: T[IdProp][] };
     empty(): { entities: Entities };
+}
+
+export interface Union2<
+    E1 extends Entity<any, any, any, any>,
+    E2 extends Entity<any, any, any, any>
+> {
+    normalizeOne(
+        obj: ExtractType<E1> | ExtractType<E2>
+    ): {
+        entities: ExtractEntities<E1> & ExtractEntities<E2>;
+        result:
+            | ExtractType<E1>[ExtractIdProp<E1>]
+            | ExtractType<E2>[ExtractIdProp<E2>];
+    };
+    // normalize(
+    //     obj: ExtractType<E>[]
+    // ): { entities: ExtractEntities<E>; result: T[ExtractIdProp<E>][] };
+    // empty(): { entities: ExtractEntities<E> };
 }
 
 export type SelfEntities<

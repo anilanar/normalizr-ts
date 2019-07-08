@@ -9,8 +9,11 @@ import {
     AddToEntities,
     ValidIdProp,
     ValidT,
-    WithId
+    WithId,
+    ExtractType,
+    ExtractEntities
 } from "./types";
+import { user } from "../mock/normalizr";
 
 class EntityImpl<
     T extends ValidT<IdProp>,
@@ -265,6 +268,21 @@ class WithKeyImpl<T extends ValidT<IdProp>, IdProp extends ValidIdProp<T>>
 
 export function define<T>(): WithId<T> {
     return new WithIdImpl();
+}
+
+export function combine<T1, T2, Entities, Result>(
+    fn: (entity: T1 | T2) => { entities: Entities; result: Result }
+) {
+    return {
+        normalizeOne: (item: T1 | T2) => {
+            return fn(item);
+        },
+        normalize: (items: (ExtractType<E1> | ExtractType<E2>)[]) => {
+            // let entities = { a.empty(), b.empty() }
+            for (const item in items) {
+            }
+        }
+    };
 }
 
 export { TypeOf };
