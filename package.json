@@ -10,7 +10,9 @@
   "author": "Anil Anar",
   "license": "MIT",
   "dependencies": {
-    "@ramda/mergewith": "0.26.1"
+    "@ramda/mergewith": "0.26.1",
+    "fp-ts": "^2.0.1",
+    "monocle-ts": "^2.0.0"
   },
   "peerDependencies": {
     "typescript": "^3.4.5"
