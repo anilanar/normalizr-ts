@@ -1,7 +1,7 @@
-import { HKT } from "fp-ts/es6/HKT";
+import { HKT, URIS2, Kind2 } from "fp-ts/es6/HKT";
 import { URIS, Kind } from "fp-ts/es6/HKT";
-import { Functor1, Functor } from "fp-ts/es6/Functor";
-import { Foldable1, Foldable } from "fp-ts/es6/Foldable";
+import { Functor1, Functor, Functor2C } from "fp-ts/es6/Functor";
+import { Foldable1, Foldable, Foldable2C } from "fp-ts/es6/Foldable";
 import { En, I, J, Ap, N, en, unE } from "./Entity";
 import { Lens } from "./Lens";
 
@@ -49,9 +49,28 @@ type RelationImpl1<F extends URIS> = <
     e1: En<A, B, C, A_, T>
 ) => Out<A, B, C, A_, T, A$, B$, C$, A$_, U, R_>;
 
+type RelationImpl2C<F extends URIS2, E> = <
+    A_,
+    A$,
+    B$ extends J,
+    C$ extends I,
+    A$_,
+    U extends {},
+    R_
+>(
+    lens: Lens<A_, Kind2<F, E, A$>, Kind2<F, E, B$>, R_>,
+    e2: En<A$, B$, C$, A$_, U>
+) => <A, B extends J, C extends I, T>(
+    e1: En<A, B, C, A_, T>
+) => Out<A, B, C, A_, T, A$, B$, C$, A$_, U, R_>;
+
+export function relation<F>(F: Functor<F> & Foldable<F>): RelationImpl<F>;
 export function relation<F extends URIS>(
     F: Functor1<F> & Foldable1<F>
 ): RelationImpl1<F>;
+export function relation<F extends URIS2, E>(
+    F: Functor2C<F, E> & Foldable2C<F, E>
+): RelationImpl2C<F, E>;
 export function relation<F>(F: Functor<F> & Foldable<F>): RelationImpl<F> {
     return (lens, e2) => e1 =>
         en(

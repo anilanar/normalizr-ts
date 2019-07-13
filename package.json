@@ -12,7 +12,8 @@
   "dependencies": {
     "@ramda/mergewith": "0.26.1",
     "fp-ts": "^2.0.1",
-    "monocle-ts": "^2.0.0"
+    "monocle-ts": "^2.0.0",
+    "newtype-ts": "^0.3.2"
   },
   "peerDependencies": {
     "typescript": "^3.4.5"
