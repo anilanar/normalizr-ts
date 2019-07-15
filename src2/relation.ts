@@ -15,9 +15,9 @@ type Out<
     B$ extends J,
     C$ extends I,
     A$_,
-    U,
+    T$,
     R_
-> = En<A, B, C, R_, Ap<N<C$, B$, A$_, U>, N<C, B, A_, T>>>;
+> = En<A, B, C, R_, Ap<N<C$, B$, A$_, T$>, N<C, B, A_, T>>>;
 
 type RelationImpl<F> = <
     A_,
@@ -25,14 +25,14 @@ type RelationImpl<F> = <
     B$ extends J,
     C$ extends I,
     A$_,
-    U extends {},
+    T$ extends {},
     R_
 >(
     lens: Lens<A_, HKT<F, A$>, HKT<F, B$>, R_>,
-    e2: En<A$, B$, C$, A$_, U>
+    e2: En<A$, B$, C$, A$_, T$>
 ) => <A, B extends J, C extends I, T>(
     e1: En<A, B, C, A_, T>
-) => Out<A, B, C, A_, T, A$, B$, C$, A$_, U, R_>;
+) => Out<A, B, C, A_, T, A$, B$, C$, A$_, T$, R_>;
 
 type RelationImpl1<F extends URIS> = <
     A_,
@@ -40,14 +40,14 @@ type RelationImpl1<F extends URIS> = <
     B$ extends J,
     C$ extends I,
     A$_,
-    U extends {},
+    T$ extends {},
     R_
 >(
     lens: Lens<A_, Kind<F, A$>, Kind<F, B$>, R_>,
-    e2: En<A$, B$, C$, A$_, U>
+    e2: En<A$, B$, C$, A$_, T$>
 ) => <A, B extends J, C extends I, T>(
     e1: En<A, B, C, A_, T>
-) => Out<A, B, C, A_, T, A$, B$, C$, A$_, U, R_>;
+) => Out<A, B, C, A_, T, A$, B$, C$, A$_, T$, R_>;
 
 type RelationImpl2C<F extends URIS2, E> = <
     A_,
@@ -55,14 +55,14 @@ type RelationImpl2C<F extends URIS2, E> = <
     B$ extends J,
     C$ extends I,
     A$_,
-    U extends {},
+    T$ extends {},
     R_
 >(
     lens: Lens<A_, Kind2<F, E, A$>, Kind2<F, E, B$>, R_>,
-    e2: En<A$, B$, C$, A$_, U>
+    e2: En<A$, B$, C$, A$_, T$>
 ) => <A, B extends J, C extends I, T>(
     e1: En<A, B, C, A_, T>
-) => Out<A, B, C, A_, T, A$, B$, C$, A$_, U, R_>;
+) => Out<A, B, C, A_, T, A$, B$, C$, A$_, T$, R_>;
 
 export function relation<F>(F: Functor<F> & Foldable<F>): RelationImpl<F>;
 export function relation<F extends URIS>(

@@ -2,25 +2,28 @@ import { pipe } from "fp-ts/es6/pipeable";
 import { entity } from "./Entity";
 import { one } from "./one";
 import { many } from "./many";
+import { union } from "./union";
 
-interface Person {
-    id: number;
-    name: string;
-}
+export { entity, one, many, union, pipe };
 
-interface Book {
-    isbn: string;
-    fav: Person | undefined;
-    favs: Person[]
-}
+// interface Person {
+//     id: number;
+//     name: string;
+// }
 
-const person = entity("person", (p: Person) => p.id);
+// interface Book {
+//     isbn: string;
+//     fav: Person | undefined;
+//     favs: Person[]
+// }
 
-const book = pipe(
-    entity("book", (b: Book) => b.isbn),
-    one("fav", person),
-    many("favs", person)
-);
+// const person = entity("person", (p: Person) => p.id);
 
-export const x = book.normalize(null as any).entities.book[""].fav;
-export const y = book.normalize(null as any).entities.book[""].favs;
+// const book = pipe(
+//     entity("book", (b: Book) => b.isbn),
+//     one("fav", person),
+//     many("favs", person)
+// );
+
+// export const x = book.normalize(null as any).entities.book[""].fav;
+// export const y = book.normalize(null as any).entities.book[""].favs;
