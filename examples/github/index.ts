@@ -1,7 +1,6 @@
-import * as schema from "./schema";
+import { Issue, PullRequest, issueOrPullRequest } from "./entities";
 import fs from "fs";
 import https from "https";
-import { normalize } from "../../src";
 import path from "path";
 
 let data = "";
@@ -20,10 +19,9 @@ const request = https.request(
         });
 
         res.on("end", () => {
-            const normalizedData = normalize(
-                JSON.parse(data),
-                schema.issueOrPullRequest
-            );
+            const normalizedData = issueOrPullRequest.normalize(JSON.parse(
+                data
+            ) as Issue | PullRequest);
             const out = JSON.stringify(normalizedData, null, 2);
             fs.writeFileSync(path.resolve(__dirname, "./output.json"), out);
         });

@@ -1,6 +1,6 @@
-import { Foldable2C, Foldable1 } from "fp-ts/es6/Foldable";
-import { URIS2, URIS, Kind2, Kind } from "fp-ts/es6/HKT";
-import { Monoid } from "fp-ts/es6/Monoid";
+import { Foldable2C, Foldable1 } from "fp-ts/lib/Foldable";
+import { URIS2, URIS, Kind2, Kind } from "fp-ts/lib/HKT";
+import { Monoid } from "fp-ts/lib/Monoid";
 
 export interface FoldableComposition2C1<F extends URIS2, G extends URIS, E> {
     readonly reduce: <A, B>(

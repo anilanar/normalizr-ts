@@ -1,4 +1,5 @@
 import { J, En, I, N } from "./Entity";
+import { concat } from "./EntitySet";
 
 export interface Un<A, T extends {}, R extends {}> {
     _tag: "Un";
@@ -20,7 +21,7 @@ type Out<
     B extends J,
     C extends I,
     A_,
-    T extends {},
+    T extends Record<I, unknown>,
     A$,
     B$ extends J,
     C$ extends I,
@@ -28,27 +29,18 @@ type Out<
     T$
 > = Un<A | A$, N<C, B, A_, T> & N<C$, B$, A$_, T$>, B | B$>;
 
-export const union = <
-    A,
-    B extends J,
-    C extends I,
-    A_,
-    T extends {},
-    A$,
-    B$ extends J,
-    C$ extends I,
-    A$_,
-    T$
->(
+export const union = <A, C extends I, A$, B$ extends J, C$ extends I, A$_, T$>(
     e2: En<A$, B$, C$, A$_, T$>,
-    selector: (a: A | A$) => C | C$
-) => (e1: En<A, B, C, A_, T>): Out<A, B, C, A_, T, A$, B$, C$, A$_, T$> =>
+    is: (a: A | A$) => a is A$
+) => <B extends J, A_, T extends {}>(
+    e1: En<A, B, C, A_, T>
+): Out<A, B, C, A_, T, A$, B$, C$, A$_, T$> =>
     un(
         a => {
-            if (selector(a) === e1._key) {
+            if (!is(a)) {
                 const { entities: en, result } = e1.normalize(a as A);
                 return {
-                    entities: { ...en, ...e2.empty },
+                    entities: concat(en, e2.empty),
                     result: result as B | B$
                 };
             }

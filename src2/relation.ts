@@ -1,9 +1,11 @@
-import { HKT, URIS2, Kind2 } from "fp-ts/es6/HKT";
-import { URIS, Kind } from "fp-ts/es6/HKT";
-import { Functor1, Functor, Functor2C } from "fp-ts/es6/Functor";
-import { Foldable1, Foldable, Foldable2C } from "fp-ts/es6/Foldable";
+import { HKT, URIS2, Kind2 } from "fp-ts/lib/HKT";
+import { URIS, Kind } from "fp-ts/lib/HKT";
+import { Functor1, Functor, Functor2C } from "fp-ts/lib/Functor";
+import { Foldable1, Foldable, Foldable2C } from "fp-ts/lib/Foldable";
+import * as R from "fp-ts/lib/Record";
 import { En, I, J, Ap, N, en, unE } from "./Entity";
 import { Lens } from "./Lens";
+import { Monoid } from "fp-ts/lib/Monoid";
 
 type Out<
     A,
@@ -72,17 +74,19 @@ export function relation<F extends URIS2, E>(
     F: Functor2C<F, E> & Foldable2C<F, E>
 ): RelationImpl2C<F, E>;
 export function relation<F>(F: Functor<F> & Foldable<F>): RelationImpl<F> {
-    return (lens, e2) => e1 =>
-        en(
+    return (lens, e2) => e1 => {
+        const newMonoid = {};
+
+        return en(
             e1._key,
-            a => {
+            M => a => {
                 const { entities: en1, result: r1 } = e1.normalize(a);
                 const fr = F.map(lens.get(en1[e1._key][r1]), e2.normalize);
                 const fen2 = F.map(fr, x => x.entities);
-                const en2 = F.reduce(fen2, e2.empty, (acc, entities) => ({
-                    ...acc,
-                    entities
-                }));
+
+                // TODO: For each entity key :o: get semigroup instance (cannot)
+                // and run the during concatination.
+                const en2 = F.reduce(fen2, e2.monoid.empty, e2.monoid.concat);
                 const r_ = lens.set(
                     en1[e1._key][r1],
                     F.map(fr, ({ result }) => result)
@@ -99,6 +103,22 @@ export function relation<F>(F: Functor<F> & Foldable<F>): RelationImpl<F> {
                     result: r1
                 };
             },
-            unE(e1, e2)
+            {
+                concat: (a, b) => {
+                    return {
+                        ...e2.monoid.concat(a, b),
+                        ...e1.monoid.concat(a, b),
+                        [e1._key]: R.getMonoid({
+                            concat: (a, b) => ({ ...a, ...b })
+                        })
+                    };
+                },
+                empty: {
+                    ...e2.monoid.empty,
+                    ...e1.monoid.empty,
+                    [e1._key]: {}
+                }
+            }
         );
+    };
 }

@@ -1,29 +1,8 @@
-import { pipe } from "fp-ts/es6/pipeable";
+import { pipe } from "fp-ts/lib/pipeable";
 import { entity } from "./Entity";
 import { one } from "./one";
 import { many } from "./many";
 import { union } from "./union";
+import { contramap } from "./contramap";
 
-export { entity, one, many, union, pipe };
-
-// interface Person {
-//     id: number;
-//     name: string;
-// }
-
-// interface Book {
-//     isbn: string;
-//     fav: Person | undefined;
-//     favs: Person[]
-// }
-
-// const person = entity("person", (p: Person) => p.id);
-
-// const book = pipe(
-//     entity("book", (b: Book) => b.isbn),
-//     one("fav", person),
-//     many("favs", person)
-// );
-
-// export const x = book.normalize(null as any).entities.book[""].fav;
-// export const y = book.normalize(null as any).entities.book[""].favs;
+export { entity, one, many, union, pipe, contramap };

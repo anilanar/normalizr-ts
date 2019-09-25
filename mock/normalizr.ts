@@ -1,31 +1,20 @@
 import { schema } from "normalizr";
 
-export const author = new schema.Entity("author");
-export const book = new schema.Entity(
-    "book",
+export const picture = new schema.Entity(
+    "picture",
+    {},
     {
-        author,
-        authors: [author]
-    },
-    {
-        idAttribute: "isbn"
+        idAttribute: "url"
     }
 );
-export const person = new schema.Entity("person", {
-    favoriteAuthor: author,
-    favoriteBooks: [book]
+export const user = new schema.Entity("user", {
+    picture
+});
+export const message = new schema.Entity("message", {
+    from: user,
+    to: user
 });
 
-export const user = new schema.Entity("user");
-export const group = new schema.Entity("group", {
-    users: [user]
-});
-export const candy = new schema.Entity("candy", {
-    owner: new schema.Union(
-        {
-            user,
-            group
-        },
-        "type"
-    )
+export const conversation = new schema.Entity("conversation", {
+    messages: [message]
 });

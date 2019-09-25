@@ -1,4 +1,4 @@
-import { entity, one, many, pipe } from "../../src2";
+import { entity, one, many, pipe, union, contramap } from "../../src2";
 
 interface User {
     id: number;
@@ -13,20 +13,22 @@ interface Milestone {
     creator: User;
 }
 
-interface Issue {
+export interface Issue {
     id: number;
     assignees: User[];
     labels: Label[];
     milestone?: Milestone;
     user: User;
+    pull_request: false;
 }
 
-interface PullRequest {
+export interface PullRequest {
     id: number;
     assignees: User[];
     labels: Label[];
     milestone?: Milestone;
     user: User;
+    pull_request: true;
 }
 
 export const user = entity("users", (u: User) => u.id);
@@ -54,12 +56,7 @@ export const pullRequest = pipe(
     one("user", user)
 );
 
-export const issueOrPullRequest = define<Issue | PullRequest>()
-    .id("id")
-    .union(
-        {
-            foo: issue,
-            bar: pullRequest
-        },
-        entity => (entity.pull_request ? "pullRequests" : "issues")
-    );
+export const issueOrPullRequest = pipe(
+    issue,
+    union(pullRequest, (a): a is PullRequest => a.pull_request)
+);

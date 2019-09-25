@@ -1,15 +1,15 @@
 // import { Newtype, iso } from "newtype-ts";
-import { Functor1, Functor2, Functor2C } from "fp-ts/es6/Functor";
-import { HKT, URIS, Kind } from "fp-ts/es6/HKT";
-import { flow } from "fp-ts/es6/function";
-import { fromNullable, map, option, toNullable } from "fp-ts/es6/Option";
-import { Foldable1, Foldable2, Foldable2C } from "fp-ts/es6/Foldable";
+import { Functor1, Functor2, Functor2C } from "fp-ts/lib/Functor";
+import { HKT, URIS, Kind } from "fp-ts/lib/HKT";
+import { flow } from "fp-ts/lib/function";
+import { fromNullable, map, option, toNullable } from "fp-ts/lib/Option";
+import { Foldable1, Foldable2, Foldable2C } from "fp-ts/lib/Foldable";
 
 // const URI_: unique symbol = Symbol();
 // const URI = ({ Nullable: URI_ } as unknown) as URI;
 // type URI = { readonly Nullable: unique symbol };
 
-declare module "fp-ts/es6/HKT" {
+declare module "fp-ts/lib/HKT" {
     interface URItoKind2<E, A> {
         Nullable: Nullable<E, A>;
     }
